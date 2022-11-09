@@ -8,6 +8,7 @@
 
 package de.myzelyam.supervanish.visibility;
 
+import com.github.puregero.multilib.MultiLib;
 import de.myzelyam.api.vanish.PlayerHideEvent;
 import de.myzelyam.api.vanish.PlayerShowEvent;
 import de.myzelyam.api.vanish.PostPlayerHideEvent;
@@ -55,8 +56,17 @@ public class VisibilityChanger {
     }
 
     public void hidePlayer(final Player player, final String hiderName, boolean silent) {
+        hidePlayer(player, hiderName, silent, false);
+    }
+
+    public void hidePlayer(final Player player, final String hiderName, boolean silent, boolean external) {
         try {
             Validation.checkNotNull("player cannot be null", player);
+
+            if(!external) {
+                MultiLib.notify("de.myzelyam.supervanish:hidePlayer", player.getUniqueId().toString() + ";" + hiderName + ";" + silent);
+            }
+
             if (plugin.getVanishStateMgr().isVanished(player.getUniqueId())) {
                 plugin.log(Level.WARNING, "Failed to hide " + player.getName()
                         + " since that player is already invisible.");
@@ -86,11 +96,13 @@ public class VisibilityChanger {
             }
             // sleep state
             player.setSleepingIgnored(true);
-            // chat message
-            if (hiderName == null)
-                plugin.sendMessage(player, "OnVanish", player);
-            else
-                plugin.sendMessage(player, "OnVanishCausedByOtherPlayer", player, hiderName);
+            // chat message - only if not external
+            if(!external) {
+                if (hiderName == null)
+                    plugin.sendMessage(player, "OnVanish", player);
+                else
+                    plugin.sendMessage(player, "OnVanishCausedByOtherPlayer", player, hiderName);
+            }
             // change collision
             try {
                 //noinspection deprecation
@@ -115,8 +127,18 @@ public class VisibilityChanger {
     }
 
     public void showPlayer(final Player player, final String showerName, boolean silent) {
+        showPlayer(player, showerName, silent, false);
+    }
+
+    public void showPlayer(final Player player, final String showerName, boolean silent, boolean external) {
         try {
             Validation.checkNotNull("player cannot be null", player);
+
+            // Notify other instances
+            if(!external) {
+                MultiLib.notify("de.myzelyam.supervanish:showPlayer", player.getUniqueId().toString() + ";" + showerName + ";" + silent);
+            }
+
             if (!plugin.getVanishStateMgr().isVanished(player.getUniqueId())) {
                 plugin.log(Level.WARNING,
                         "Failed to show " + player.getName() + " since that player is already visible.");
@@ -143,10 +165,12 @@ public class VisibilityChanger {
             plugin.getVanishStateMgr().setVanishedState(player.getUniqueId(),
                     player.getName(), false, showerName);
             // chat message
-            if (showerName == null)
-                plugin.sendMessage(player, "OnReappear", player);
-            else
-                plugin.sendMessage(player, "OnReappearCausedByOtherPlayer", player, showerName);
+            if(!external) {
+                if (showerName == null)
+                    plugin.sendMessage(player, "OnReappear", player);
+                else
+                    plugin.sendMessage(player, "OnReappearCausedByOtherPlayer", player, showerName);
+            }
             // adjust collision
             try {
                 //noinspection deprecation

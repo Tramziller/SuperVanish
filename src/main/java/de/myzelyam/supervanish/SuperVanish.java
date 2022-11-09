@@ -9,6 +9,7 @@
 package de.myzelyam.supervanish;
 
 import com.comphenix.protocol.ProtocolLibrary;
+import com.github.puregero.multilib.MultiLib;
 import de.myzelyam.api.vanish.VanishAPI;
 import de.myzelyam.supervanish.commands.VanishCommand;
 import de.myzelyam.supervanish.config.ConfigMgr;
@@ -113,6 +114,8 @@ public class SuperVanish extends JavaPlugin implements SuperVanishPlugin {
         } catch (NoSuchMethodError ignored) {
             // API already loaded by other plugin
         }
+
+        registerMultilib();
     }
 
     @Override
@@ -183,6 +186,36 @@ public class SuperVanish extends JavaPlugin implements SuperVanishPlugin {
         QuitListener quitListener = new QuitListener(this);
         pluginManager.registerEvent(PlayerQuitEvent.class, quitListener,
                 getEventPriority(PlayerQuitEvent.class), quitListener, this, false);
+    }
+
+    private void registerMultilib() {
+        MultiLib.onString(this, "de.myzelyam.supervanish:showPlayer", data -> {
+            String[] args = data.split(";");
+
+            // get player:
+            Player player = MultiLib.getAllOnlinePlayers().stream().filter(p -> p.getUniqueId().toString().equals(args[0])).findFirst().orElse(null);
+
+            if(player == null) {
+                return;
+            }
+
+            String name = args[1].equalsIgnoreCase("null") ? null : args[1];
+            getVisibilityChanger().showPlayer(player, name, Boolean.parseBoolean(args[2]), true);
+        });
+
+        MultiLib.onString(this, "de.myzelyam.supervanish:hidePlayer", data -> {
+            String[] args = data.split(";");
+
+            // get player:
+            Player player = MultiLib.getAllOnlinePlayers().stream().filter(p -> p.getUniqueId().toString().equals(args[0])).findFirst().orElse(null);
+
+            if(player == null) {
+                return;
+            }
+
+            String name = args[1].equalsIgnoreCase("null") ? null : args[1];
+            getVisibilityChanger().hidePlayer(player, name, Boolean.parseBoolean(args[2]), true);
+        });
     }
 
     private EventPriority getEventPriority(Class<? extends Event> eventClass) {
